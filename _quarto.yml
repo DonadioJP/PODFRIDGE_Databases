@@ -1,0 +1,29 @@
+project:
+  type: website
+  output-dir: docs
+
+website:
+  title: "PODFRIDGE-Databases"
+  navbar:
+    left:
+      - href: index.html
+        text: Home
+      - href: about.html
+        text: About
+      - text: Analyses
+        menu:
+          - href: analysis/ndis_scraping.html
+            text: NDIS analysis
+          - href: analysis/sdis_summary.html
+            text: SDIS summary
+          - href: analysis/foia_processing.html
+            text: FOIA processing
+          - href: analysis/appendix_analysis.html
+            text: Appendix racial analysis
+format:
+  html:
+    theme:
+      - cosmo
+      - brand
+    css: styles.css     
+    toc: true

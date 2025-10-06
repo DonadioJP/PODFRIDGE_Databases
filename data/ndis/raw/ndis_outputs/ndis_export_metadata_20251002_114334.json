@@ -1,0 +1,18 @@
+{
+  "export_timestamp": "20251002_114334",
+  "export_path": "C:\\Users\\Donadio\\Documents\\PODFRIDGE_Databases\\data\\ndis\\raw\\ndis_outputs\\ndis_data_raw.csv",
+  "record_count": 31503,
+  "file_size_mb": 3.4,
+  "unique_snapshots": 11262,
+  "unique_jurisdictions": 169,
+  "date_coverage": {
+    "earliest_capture": "2001-07-15T04:03:42",
+    "latest_capture": "2025-08-15T00:20:50",
+    "span_years": "25"
+  },
+  "data_completeness": {
+    "with_report_dates": 20594,
+    "with_arrestee_data": 10915,
+    "total_investigations_aided": 167863194
+  }
+}
