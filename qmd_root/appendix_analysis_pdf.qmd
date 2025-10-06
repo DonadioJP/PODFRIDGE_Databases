@@ -1,23 +1,26 @@
 ---
 title: "Annual DNA collection from Murphy & Tong Study"
-author: "Tina Lasisi & João P. Donadio"
-date: today
 format:
   pdf:
-    toc: true
-    toc-depth: 3
+    toc: false
     number-sections: true
     keep-tex: false
     documentclass: article
     geometry:
       - top=1in
       - bottom=1in
-      - left=1in
-      - right=1in
+      - left=0.8in
+      - right=0.8in
     fontsize: 11pt
-    fig-width: 7
-    fig-height: 5
+    fig-width: 8
+    fig-height: 6
     df-print: kable
+    include-in-header:
+      text: |
+        \newcommand{\forcebreak}{\newpage}
+editor: 
+  markdown: 
+    wrap: 72
 execute:
   echo: true
   warning: false
@@ -84,7 +87,7 @@ This automated parsing ensures reproducibility and allows for systematic extract
 
 ```{r}
 #| label: setup-packages
-#| echo: true
+#| echo: false
 #| results: hold
 
 # List of required packages
@@ -95,7 +98,8 @@ required_packages <- c(
   "stringr",     # String manipulation
   "purrr",       # Functional programming
   "here",        # File path management
-  "kableExtra"   # Table formatting for PDF
+  "kableExtra",   # Table formatting for PDF
+  "flextable"
 )
 
 # Function to install missing packages
@@ -120,6 +124,7 @@ suppressPackageStartupMessages({
   library(purrr)
   library(here)
   library(kableExtra)
+  library(flextable)
 })
 
 # Verify all packages loaded successfully
@@ -292,14 +297,60 @@ parse_dna_data <- function(file_path) {
 racial_data_path <- file.path(here("data", "annual_dna_collection", "intermediate", "MurphyTong_Racial_Breakdown.txt"))
 
 summary_data <- parse_dna_data(racial_data_path)
+```
 
-# Display table
-kable(summary_data, booktabs = TRUE, longtable = TRUE, caption = "Complete state-by-state breakdown of DNA collection by race") %>%
-  kable_styling(
-    latex_options = c("striped", "scale_down", "repeat_header"),
-    font_size = 9,
-    position = "center"
+```{r}
+#| echo: false
+
+# Display data types for each column with example values
+enhanced_glimpse <- function(df) {
+  glimpse_data <- data.frame(
+    Column = names(df),
+    Type = sapply(df, function(x) paste(class(x), collapse = ", ")),
+    Rows = nrow(df),
+    Missing = sapply(df, function(x) sum(is.na(x))),
+    Unique = sapply(df, function(x) length(unique(x))),
+    Example_Value = sapply(df, function(x) {
+      # Get first non-NA value
+      first_val <- x[!is.na(x)][1]
+      
+      if (length(first_val) == 0 || is.na(first_val)) {
+        return("(all NA)")
+      }
+      
+      # Convert to character and clean problematic characters
+      val_str <- as.character(first_val)
+      val_str <- gsub("\\\\", "/", val_str)
+      val_str <- gsub("_", " ", val_str)
+      val_str <- gsub("#", "", val_str)
+      val_str <- gsub("&", "and", val_str)
+      
+      # Truncate if too long
+      if (nchar(val_str) > 50) {
+        val_str <- paste0(substr(val_str, 1, 47), "...")
+      }
+      
+      return(val_str)
+    }),
+    stringsAsFactors = FALSE
   )
+  
+  ft <- flextable(glimpse_data) %>%
+    theme_zebra() %>%
+    set_caption(paste("Enhanced Data Glimpse:", deparse(substitute(df)))) %>%
+    autofit() %>%
+    align(align = "left", part = "all") %>%
+    colformat_num(j = c("Rows", "Missing", "Unique"), big.mark = "") %>%
+    bg(j = "Missing", bg = function(x) ifelse(x > 0, "#FFF3CD", "transparent")) %>%
+    bg(j = "Unique", bg = function(x) ifelse(x == 1, "#FFF3CD", "transparent")) %>%
+    add_footer_lines(paste("Data frame dimensions:", nrow(df), "rows x", ncol(df), "columns")) %>%
+    fontsize(size = 10, part = "all") %>%
+    set_table_properties(layout = "autofit", width = 1)
+  
+  return(ft)
+}
+
+enhanced_glimpse(summary_data)
 ```
 
 ### Disparity Analysis
@@ -307,7 +358,7 @@ kable(summary_data, booktabs = TRUE, longtable = TRUE, caption = "Complete state
 ```{r}
 #| label: fig-disparity-rates
 #| fig-cap: "DNA Collection Rates by Race Relative to Population Percentage"
-#| echo: true
+#| echo: false
 
 # Calculate disparity ratios
 disparity_data <- summary_data %>%
@@ -562,14 +613,7 @@ methodology_summary <- final_df_clean %>%
   arrange(state)
 
 # Create table
-kable(methodology_summary, booktabs = TRUE, longtable = TRUE, caption = "Summary of Methodology by State") %>%
-  kable_styling(
-    latex_options = c("striped", "scale_down", "repeat_header"),
-    font_size = 8,
-    position = "center"
-  ) %>%
-  column_spec(1:3, width = "6cm") %>% 
-  row_spec(0, bold = TRUE, background = "#f2f2f2") 
+enhanced_glimpse(methodology_summary)
 ```
 
 ## Combining Information into Master Dataset
@@ -606,7 +650,7 @@ This unified structure enables analyses that account for data quality difference
 
 ```{r}
 #| label: combining-data
-#| echo: true
+#| echo: false
 #| results: hold
 
 # Create state name crosswalk for joining
@@ -671,46 +715,8 @@ annual_dna_combined <- annual_dna_combined %>%
   relocate(Total_DNA_Profiles, .after = White_DNA_N)
 
 # Show preview
-kable(annual_dna_combined, booktabs = TRUE, longtable = TRUE, caption = "Complete Annual DNA Collection Dataset - One Row Per State") %>%
-  kable_styling(
-    latex_options = c("striped", "scale_down", "repeat_header"),
-    font_size = 8,
-    position = "center"
-  )
+enhanced_glimpse(annual_dna_combined)
 
-```
-
-## Data Export and Versioning
-
-```{r}
-#| label: export-data
-#| echo: true
-#| results: hold
-
-# Create output directory structure
-intermediate_dir <- here("data", "annual_dna_collection", "intermediate")
-dir.create(intermediate_dir, recursive = TRUE, showWarnings = FALSE)
-
-final_dir <- here("data", "annual_dna_collection", "final")
-dir.create(final_dir, recursive = TRUE, showWarnings = FALSE)
-
-frozen_dir <- here("data", "v1.0")
-dir.create(frozen_dir, recursive = TRUE, showWarnings = FALSE)
-
-# Export final combined dataset
-output_path <- file.path(final_dir, "Annual_DNA_Collection.csv")
-write_csv(annual_dna_combined, output_path)
-cat(paste("✓ Exported Annual DNA Collection dataset to:", output_path, "\n"))
-
-# Create frozen version (v1.0) for long-term reference
-frozen_path <- file.path(frozen_dir, "Annual_DNA_Collection.csv")
-write_csv(annual_dna_combined, frozen_path)
-cat(paste("✓ Created frozen version 1.0 at:", frozen_path, "\n\n"))
-
-# Export the methodology summary separately for reference
-methodology_output_path <- file.path(intermediate_dir, "State_Methodology.csv")
-write_csv(methodology_summary, methodology_output_path)
-cat(paste("✓ Exported study methodology summary to:", methodology_output_path, "\n"))
 ```
 
 ## Summary and Key Findings
@@ -719,7 +725,7 @@ cat(paste("✓ Exported study methodology summary to:", methodology_output_path,
 
 ```{r}
 #| label: data-completeness-summary
-#| echo: true
+#| echo: false
 
 # Analyze data completeness by category
 completeness_summary <- annual_dna_combined %>%

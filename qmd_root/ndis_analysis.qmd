@@ -1625,8 +1625,8 @@ p_anomaly_summary <- anomaly_log %>%
 p_anomaly_summary
 
 # Saving anomaly log
-dir.create("data/ndis/intermediate", recursive = TRUE, showWarnings = FALSE)
-write.csv(anomaly_log, "data/ndis/intermediate/anomaly_log.csv", row.names = FALSE)
+anomaly_dir <- here("data", "ndis", "intermediate", "anomaly_log.csv")
+write.csv(anomaly_log, anomaly_dir, row.names = FALSE)
 ```
 
 ### Temporal Coverage Heat Map

@@ -1,26 +1,26 @@
 ---
-title: "FOIA Document OCR Processing"
+title: "Supplementary Material: FOIA Document OCR Processing"
 subtitle: "Processing Murphy & Tong FOIA Documents about State DNA Database Racial Composition"
-author: "Tina Lasisi | Edit: João P. Donadio"
-date: today
 format:
   pdf:
-    toc: true
-    toc-depth: 4
+    toc: false
     number-sections: true
     keep-tex: false
     documentclass: article
     geometry:
       - top=1in
       - bottom=1in
-      - left=1in
-      - right=1in
+      - left=0.8in
+      - right=0.8in
     fontsize: 11pt
     fig-width: 8
     fig-height: 6
     df-print: kable
-language:
-  toc-title-document: "Table of Contents"
+    include-in-header:
+      text: |
+        \newcommand{\forcebreak}{\newpage}
+         \usepackage{caption}
+         \captionsetup[figure]{font=large}
 editor: 
   markdown: 
     wrap: 72
@@ -48,7 +48,7 @@ The original FOIA responses are stored in two formats:
 
 ```{r}
 #| label: setup
-#| echo: true
+#| echo: false
 
 # List of required packages
 required_packages <- c(
@@ -132,7 +132,7 @@ stem_to_state <- function(stem) {
 
 states_available <- map_chr(basename(state_files), ~ stem_to_state(str_remove(.x, "_foia_data\\.csv")))
 
-cat(paste("✓ Found", length(state_files), "per-state files:\n"))
+cat(paste("✓ ", length(state_files), "per-state files:\n"))
 for (s in states_available) {
   cat(paste("  •", s, "\n"))
 }
@@ -180,27 +180,27 @@ the state‑level FOIA tables.
 
 | Function | Definition | Parameters |
 |:-----------------------|:-----------------------|:-----------------------|
-| **`load_state()`** | Loads and preprocesses state FOIA data files, handling numeric conversion and validation | `path`: File path to state CSV |
-| **`enhanced_glimpse()`** | Provides an enhanced data overview with column types, missing values, unique counts, and unique values | `df`: Input dataframe |
-| **`fill_demographic_gaps()`** | Fills missing gender counts and adds Unknown race category when totals permit calculation | `df`: Input dataframe |
-| **`add_combined()`** | Creates Combined offender type by summing Convicted Offender and Arrestee counts when missing | `df`: Input dataframe |
-| **`add_percentages()`** | Derives percentage values from counts for all demographic categories | `df`: Input dataframe |
-| **`counts_consistent()`** | Verifies that demographic counts sum to total_profiles for each offender type | `df`: Input dataframe |
-| **`percentages_consistent()`** | Verifies that percentages sum to 100 ± 0.5% for each category | `df`: Input dataframe |
-| **`report_status()`** | Reports what data types (counts/percentages/both) are available for a category | `df`: Input dataframe, `category`: race or gender |
-| **`verify_category_totals()`** | Compares demographic sums against reported totals and shows differences | `df`: Input dataframe |
-| **`verify_percentage_consistency()`** | Compares reported vs calculated percentages for consistency | `df_combined`: Combined dataframe, `state_name`: State name |
-| **`calculate_combined_totals()`** | Calculates Combined totals by summing across offender types | `df`: Input dataframe, `state_name`: State name |
-| **`calculate_percentages()`** | Calculates percentages from counts for demographic categories | `df_combined`: Combined dataframe, `state_name`: State name |
-| **`calculate_counts_from_percentages()`** | Calculates counts from percentages for demographic categories | `df_combined`: Combined dataframe, `state_name`: State name |
-| **`standardize_offender_types()`** | Standardizes offender type names to consistent terminology | `df`: Input dataframe |
-| **`prepare_state_for_combined()`** | Prepares state data for inclusion in combined dataset with proper columns | `df`: Input dataframe, `state_name`: State name |
-| **`format_compact()`** | Formats large numbers with K/M suffixes for readability | `x`: Numeric value |
-| **`create_pie_chart()`** | Creates pie charts for specific demographic categories | `data`: Input data, `offender_type`, `category`, `value_type`, `title`, `show_values` |
-| **`create_state_visualizations()`** | Creates comprehensive pie chart visualizations for all metrics | `df_combined`: Combined dataframe, `state_name`: State name |
-| **`create_demographic_bar_charts()`** | Creates side-by-side bar charts for gender and race distributions | `df_combined`: Combined dataframe, `state_name`: State name |
-| **`add_state_metadata()`** | Creates and appends a metadata record capturing state data characteristics including available offender types, demographic categories, data formats, and special features | `df`: Input dataframe, `state_name`: State name |
-| **`update_state_metadata()`** | Modifies existing state metadata to update QC results (count/percentage consistency) and append validation notes | `state_name`: State name, `counts_ok`: Count consistency flag, `percentages_ok`: Percentage consistency flag, `notes_text`: Additional notes |
+| `load_state()` | Loads and preprocesses state FOIA data files, handling numeric conversion and validation | `path`: File path to state CSV |
+| `enhanced_glimpse()` | Provides an enhanced data overview with column types, missing values, unique counts, and unique values | `df`: Input dataframe |
+| `fill_demographic_gaps()` | Fills missing gender counts and adds Unknown race category when totals permit calculation | `df`: Input dataframe |
+| `add_combined()` | Creates Combined offender type by summing Convicted Offender and Arrestee counts when missing | `df`: Input dataframe |
+| `add_percentages()` | Derives percentage values from counts for all demographic categories | `df`: Input dataframe |
+| `counts_consistent()` | Verifies that demographic counts sum to total_profiles for each offender type | `df`: Input dataframe |
+| `percentages_consistent()` | Verifies that percentages sum to 100 ± 0.5% for each category | `df`: Input dataframe |
+| `report_status()` | Reports what data types (counts/percentages/both) are available for a category | `df`: Input dataframe, `category`: race or gender |
+| `verify_category_totals()` | Compares demographic sums against reported totals and shows differences | `df`: Input dataframe |
+| `verify_percentage_consistency()` | Compares reported vs calculated percentages for consistency | `df_combined`: Combined dataframe, `state_name`: State name |
+| `calculate_combined_totals()` | Calculates Combined totals by summing across offender types | `df`: Input dataframe, `state_name`: State name |
+| `calculate_percentages()` | Calculates percentages from counts for demographic categories | `df_combined`: Combined dataframe, `state_name`: State name |
+| `calculate_counts_from_percentages()` | Calculates counts from percentages for demographic categories | `df_combined`: Combined dataframe, `state_name`: State name |
+| `standardize_offender_types()` | Standardizes offender type names to consistent terminology | `df`: Input dataframe |
+| `prepare_state_for_combined()` | Prepares state data for inclusion in combined dataset with proper columns | `df`: Input dataframe, `state_name`: State name |
+| `format_compact()` | Formats large numbers with K/M suffixes for readability | `x`: Numeric value |
+| `create_pie_chart()` | Creates pie charts for specific demographic categories | `data`: Input data, `offender_type`, `category`, `value_type`, `title`, `show_values` |
+| `create_state_visualizations()` | Creates comprehensive pie chart visualizations for all metrics | `df_combined`: Combined dataframe, `state_name`: State name |
+| `create_demographic_bar_charts()` | Creates side-by-side bar charts for gender and race distributions | `df_combined`: Combined dataframe, `state_name`: State name |
+| `add_state_metadata()` | Creates and appends a metadata record capturing state data characteristics including available offender types, demographic categories, data formats, and special features | `df`: Input dataframe, `state_name`: State name |
+| `update_state_metadata()` | Modifies existing state metadata to update QC results (count/percentage consistency) and append validation notes | `state_name`: State name, `counts_ok`: Count consistency flag, `percentages_ok`: Percentage consistency flag, `notes_text`: Additional notes |
 
 ```{r}
 #| label: helper-functions-setup
@@ -775,12 +775,14 @@ create_pie_chart <- function(data, offender_type, category, value_type, title, s
       arrange(factor(variable_detailed, levels = c('Male', 'Female', 'Unknown')))
   } else if (category == 'race') {
     all_races <- data.frame(variable_detailed = c('White', 'Black', 'Hispanic', 
-                                                 'Asian', 'Native American', 'Other', 'Unknown'))
+                                                 'Asian', 'Native American',
+                                                  'Other', 'Unknown'))
     chart_data <- chart_data %>%
       right_join(all_races, by = "variable_detailed") %>%
       mutate(value = ifelse(is.na(value), 0, value)) %>%
       arrange(factor(variable_detailed, levels = c('White', 'Black', 'Hispanic', 
-                                                  'Asian', 'Native American', 'Other', 'Unknown')))
+                                                  'Asian', 'Native American',
+                                                   'Other', 'Unknown')))
   }
   
   # Filter out zero values and ensure we have data
@@ -813,7 +815,8 @@ create_pie_chart <- function(data, offender_type, category, value_type, title, s
   # Create labels based on value_type and show_values
   if (show_values && value_type == 'count') {
     chart_data <- chart_data %>%
-      mutate(base_label = paste0(variable_detailed, "\n(", format(value, big.mark = ","), ")"))
+      mutate(base_label = paste0(variable_detailed, "\n(",
+      format(value, big.mark = ","), ")"))
   } else if (value_type == 'percentage') {
     chart_data <- chart_data %>%
       mutate(base_label = paste0(variable_detailed, "\n(", round(value, 1), "%)"))
@@ -837,7 +840,8 @@ create_pie_chart <- function(data, offender_type, category, value_type, title, s
   # Add legend for small slices
   small_slices <- chart_data %>% filter(pct < 3)
   if (nrow(small_slices) > 0) {
-    legend_labels <- paste0(small_slices$variable_detailed, " (", round(small_slices$pct, 1), "%)")
+    legend_labels <- paste0(small_slices$variable_detailed, " (",
+     round(small_slices$pct, 1), "%)")
     legend_colors <- pie_colors[small_slices$variable_detailed]
     
     legend("bottomright", 
@@ -892,7 +896,8 @@ create_demographic_bar_charts <- function(df_combined, state_name) {
   }
   
   # Color palettes
-  gender_colors <- c('Male' = '#4E79A7', 'Female' = '#E15759', 'Unknown' = '#BAB0AC')
+  gender_colors <- c('Male' = '#4E79A7', 'Female' = '#E15759',
+  'Unknown' = '#BAB0AC')
   race_colors <- c(
     'White' = '#4E79A7', 
     'Black' = '#F25E2B', 
@@ -924,7 +929,7 @@ create_demographic_bar_charts <- function(df_combined, state_name) {
              fill = list(value = 0))
   
   # Create separate plots - one per row
-  par(mfrow = c(2, 1), mar = c(5, 9, 4, 9), oma = c(0, 0, 2, 0)) # Increased right margin for legend
+  par(mfrow = c(2, 1), mar = c(5, 9, 4, 9), oma = c(0, 0, 2, 0))
   
   # Gender plot - ordered by total volume
   gender_plot_data <- gender_data %>%
@@ -1048,7 +1053,8 @@ create_demographic_bar_charts <- function(df_combined, state_name) {
          inset = c(-0.25, 0),  # Move legend to the right
          cex = 0.8)
   
-  title(paste(state_name, "Demographic Distribution"), outer = TRUE, cex.main = 1.5)
+  title(paste(state_name, "Demographic Distribution"),
+   outer = TRUE, cex.main = 1.5)
 }
 
 # ------------------------------------------------------------------
@@ -1066,7 +1072,8 @@ add_state_metadata <- function(state_name, state_df) {
   
   nonstandard_terms <- any(
     grepl("All|Offenders", raw_data$offender_type, ignore.case = TRUE),
-    grepl("Caucasian|African American| American Indian", raw_data$variable_detailed, ignore.case = TRUE),
+    grepl("Caucasian|African American| American Indian", 
+    raw_data$variable_detailed, ignore.case = TRUE),
     grepl("flag", raw_data$variable_detailed, ignore.case = TRUE))
   
   new_row <- tibble(
@@ -1121,7 +1128,8 @@ update_state_metadata <- function(state_name,
     if (current_notes == "") {
       foia_state_metadata$notes[row_index] <<- notes_text
     } else {
-      foia_state_metadata$notes[row_index] <<- paste(current_notes, notes_text, sep = "; ")
+      foia_state_metadata$notes[row_index] <<- paste(current_notes,
+       notes_text, sep = "; ")
     }
   }
   
@@ -1164,6 +1172,8 @@ sd_raw <- load_state(here(per_state, "south_dakota_foia_data.csv"))
 tx_raw <- load_state(here(per_state, "texas_foia_data.csv"))
 
 ```
+
+\forcebreak
 
 ### Raw Data Characteristics
 
@@ -1227,6 +1237,10 @@ value = numeric(),
 value_type = character(),
 value_source = character()
 )
+```
+
+```{r}
+#| echo: false
 
 # Create a data dictionary for foia_combined
 schema_dict <- tribble(
@@ -1308,13 +1322,18 @@ foia_state_metadata <- tibble(
   notes = character()
 )
 
+```
+
+```{r}
+#| echo: false
+
 # Build data dictionary for foia_state_metadata
 schema_dict_meta <- tribble(
   ~Column,                        ~Type,       ~Description,
   "state",                        "character", "State name (e.g., 'California', 'Florida')",
-  "race_data_provided",           "character", "Race data availability: 'counts', 'percentages', 'both', 'none'",
-  "gender_data_provided",         "character", "Gender data availability: 'counts', 'percentages', 'both', 'none'",
-  "total_profiles_provided",      "character", "Total profiles availability: 'counts', 'percentages', 'both', 'none'",
+  "race_data_provided",           "character", "Race data availability: 'counts', 'percentages', 'both'",
+  "gender_data_provided",         "character", "Gender data availability: 'counts', 'percentages', 'both'",
+  "total_profiles_provided",      "character", "Total profiles availability: 'counts', 'percentages', 'both'",
   "convicted_offender_reported",  "logical",   "Was convicted offender data reported?",
   "arrestee_reported",            "logical",   "Was arrestee data reported?",
   "combined_reported",            "logical",   "Was combined category reported?",
@@ -1404,7 +1423,7 @@ derived.
 
 ```{r}
 #| label: ca-add-unknown
-#| echo: true
+#| echo: false
 #| results: hold
 
 # Start with the raw data
@@ -1432,7 +1451,7 @@ categories.
 
 ```{r}
 #| label: ca-create-combined
-#| echo: true
+#| echo: false
 #| results: hold
 
 # Calculate Combined totals using helper function
@@ -1463,7 +1482,7 @@ approximately 100%.
 
 ```{r}
 #| label: ca-calculate-percentages
-#| echo: true
+#| echo: false
 #| results: hold
 
 # Derive percentages from counts
@@ -1488,7 +1507,7 @@ instead of "White".
 
 ```{r}
 #| label: ca-standardize-terminology
-#| echo: true
+#| echo: false
 #| results: hold
 
 # Standardize racial terminology
@@ -1516,7 +1535,7 @@ the `foia_combined` dataframe.
 
 ```{r}
 #| label: ca-prepare-combined
-#| echo: true
+#| echo: false
 #| results: hold
 
 # Prepare the cleaned data for the combined dataset
@@ -1536,7 +1555,7 @@ results of the quality checks and a note on the processing steps taken.
 
 ```{r}
 #| label: ca-prepare-metadata
-#| echo: true
+#| echo: false
 #| results: hold
 
 # Add California to the metadata table using the helper function
@@ -1578,11 +1597,10 @@ create_demographic_bar_charts(foia_combined, "California")
 
 ```{r}
 #| label: ca-summary
-#| echo: true
+#| echo: false
 #| results: hold
 
 cat("California DNA Database Summary:\n")
-cat("=", strrep("=", 40), "\n")
 
 # Total profiles by offender type
 totals <- foia_combined %>%
@@ -1593,21 +1611,41 @@ totals <- foia_combined %>%
   select(offender_type, value) %>%
   mutate(value_formatted = format(value, big.mark = ","))
 
-print(totals)
+cat("### Total Profiles by Offender Type (California)\n\n")
+totals %>%
+  select(offender_type, value_formatted) %>%
+  rename(`Offender Type` = offender_type,
+         `Total Profiles` = value_formatted) %>%
+  kable(align = c("l", "r"), 
+        format.args = list(big.mark = ","))
 
 # Data completeness
-cat("\nData completeness:\n")
+cat("\n\n### Data Completeness by Source\n\n")
 completeness <- foia_combined %>%
   filter(state == "California") %>%
   group_by(offender_type, value_source) %>%
-  summarise(n_values = n(), .groups = "drop")
+  summarise(n_values = n(), .groups = "drop") %>%
+  arrange(offender_type, value_source)
 
-print(completeness)
+completeness %>%
+  rename(`Offender Type` = offender_type,
+         `Value Source` = value_source,
+         `Number of Values` = n_values) %>%
+  kable(align = c("l", "l", "r"))
 
 # Final verification
-cat("\nFinal verification:\n")
-cat(paste("Counts consistent:", counts_consistent(foia_combined %>% filter(state == "California")), "\n"))
-cat(paste("Percentages consistent:", percentages_consistent(foia_combined %>% filter(state == "California")), "\n"))
+cat("\n\n### Data Validation Summary\n\n")
+validation_results <- data.frame(
+  Check = c("Counts Consistency", "Percentages Consistency"),
+  Status = c(
+    ifelse(counts_consistent(foia_combined %>% filter(state == "California")), 
+           "✓ Pass", "✗ Fail"),
+    ifelse(percentages_consistent(foia_combined %>% filter(state == "California")), 
+           "✓ Pass", "✗ Fail")
+  )
+)
+
+kable(validation_results, align = c("l", "c"))
 ```
 
 ### Summary of California Processing
@@ -1688,7 +1726,7 @@ instead of "White".
 
 ```{r}
 #| label: fl-standardize-terminology
-#| echo: true
+#| echo: false
 #| results: hold
 
 fl_clean <- fl_raw
@@ -1718,7 +1756,7 @@ match the master schema and appended to the `foia_combined` dataframe.
 
 ```{r}
 #| label: fl-prepare-combined
-#| echo: true
+#| echo: false
 #| results: hold
 
 # Prepare the data for the combined dataset
@@ -1738,7 +1776,7 @@ required no processing.
 
 ```{r}
 #| label: fl-prepare-metadata
-#| echo: true
+#| echo: false
 #| results: hold
 
 # Add Florida to the metadata table using the helper function
@@ -1769,11 +1807,10 @@ create_state_visualizations(foia_combined, "Florida")
 
 ```{r}
 #| label: fl-summary
-#| echo: true
+#| echo: false
 #| results: hold
 
 cat("Florida DNA Database Summary:\n")
-cat("=", strrep("=", 40), "\n")
 
 # Total profiles by offender type
 totals <- foia_combined %>%
@@ -1784,21 +1821,40 @@ totals <- foia_combined %>%
   select(offender_type, value) %>%
   mutate(value_formatted = format(value, big.mark = ","))
 
-print(totals)
+cat("### Total Profiles by Offender Type (Florida)\n\n")
+totals %>%
+  select(offender_type, value_formatted) %>%
+  rename(`Offender Type` = offender_type,
+         `Total Profiles` = value_formatted) %>%
+  kable(align = c("l", "r"))
 
 # Data completeness
-cat("\nData completeness:\n")
+cat("\n\n### Data Completeness by Source\n\n")
 completeness <- foia_combined %>%
   filter(state == "Florida") %>%
   group_by(offender_type, value_source) %>%
-  summarise(n_values = n(), .groups = "drop")
+  summarise(n_values = n(), .groups = "drop") %>%
+  arrange(offender_type, value_source)
 
-print(completeness)
+completeness %>%
+  rename(`Offender Type` = offender_type,
+         `Value Source` = value_source,
+         `Number of Values` = n_values) %>%
+  kable(align = c("l", "l", "r"))
 
 # Final verification
-cat("\nFinal verification:\n")
-cat(paste("Counts consistent:", counts_consistent(foia_combined %>% filter(state == "Florida")), "\n"))
-cat(paste("Percentages consistent:", percentages_consistent(foia_combined %>% filter(state == "Florida")), "\n"))
+cat("\n\n### Data Validation Summary\n\n")
+validation_results <- data.frame(
+  Check = c("Counts Consistency", "Percentages Consistency"),
+  Status = c(
+    ifelse(counts_consistent(foia_combined %>% filter(state == "Florida")), 
+           "✓ Pass", "✗ Fail"),
+    ifelse(percentages_consistent(foia_combined %>% filter(state == "Florida")), 
+           "✓ Pass", "✗ Fail")
+  )
+)
+
+kable(validation_results, align = c("l", "c"))
 ```
 
 ### Summary of Florida Processing
@@ -1876,7 +1932,7 @@ The raw data contains string values including "\<1" which we convert to
 
 ```{r}
 #| label: in-convert-values
-#| echo: true
+#| echo: false
 #| results: hold
 
 # Start with raw data
@@ -1907,7 +1963,7 @@ Proportional scaling was applied and `value_source` was updated to "calculated" 
 
 ```{r}
 #| label: in-recalculate-percentages
-#| echo: true
+#| echo: false
 #| results: hold
 
 # Adjust percentages to ensure they sum to 100% and mark as calculated
@@ -1941,7 +1997,7 @@ Indiana uses "Caucasian" instead of "White".
 
 ```{r}
 #| label: in-standardize-terminology
-#| echo: true
+#| echo: false
 #| results: hold
 
 # Standardize racial terminology
@@ -1961,7 +2017,7 @@ but we need a Combined total to match the demographic percentages.
 
 ```{r}
 #| label: in-create-combined-total
-#| echo: true
+#| echo: false
 #| results: hold
 
 # Calculate Combined total from separate offender type totals
@@ -2002,7 +2058,7 @@ Indiana only provides percentages for demographic categories. We calculate the a
 
 ```{r}
 #| label: in-calculate-counts
-#| echo: true
+#| echo: false
 #| results: hold
 
 # Calculate counts from percentages for Combined offender type
@@ -2039,7 +2095,7 @@ the `foia_combined` dataframe.
 
 ```{r}
 #| label: in-prepare-combined
-#| echo: true
+#| echo: false
 #| results: hold
 
 # Prepare the cleaned data for the combined dataset
@@ -2058,7 +2114,7 @@ The metadata is added with details on all processing steps performed.
 
 ```{r}
 #| label: in-prepare-metadata
-#| echo: true
+#| echo: false
 #| results: hold
 
 # Add Indiana to the metadata table using the helper function
@@ -2092,11 +2148,10 @@ create_state_visualizations(foia_viz_data, "Indiana")
 
 ```{r}
 #| label: in-summary
-#| echo: true
+#| echo: false
 #| results: hold
 
 cat("Indiana DNA Database Summary:\n")
-cat("=", strrep("=", 40), "\n")
 
 # Total profiles by offender type
 totals <- foia_combined %>%
@@ -2107,21 +2162,39 @@ totals <- foia_combined %>%
   select(offender_type, value, value_source) %>%
   mutate(value_formatted = format(value, big.mark = ","))
 
-print(totals)
+cat("### Total Profiles by Offender Type (Indiana)\n\n")
+totals %>%
+  select(offender_type, value_formatted, value_source) %>%
+  rename(`Offender Type` = offender_type,
+         `Total Profiles` = value_formatted,
+         `Source` = value_source) %>%
+  kable(align = c("l", "r", "l"))
 
 # Data completeness by value source
-cat("\nData completeness by source:\n")
+cat("\n\n### Data Completeness by Source\n\n")
 completeness <- foia_combined %>%
   filter(state == "Indiana") %>%
   group_by(value_source) %>%
   summarise(n_values = n(), .groups = "drop")
 
-print(completeness)
+completeness %>%
+  rename(`Value Source` = value_source,
+         `Number of Values` = n_values) %>%
+  kable(align = c("l", "r"))
 
 # Final verification
-cat("\nFinal verification:\n")
-cat(paste("Counts consistent:", counts_consistent(foia_combined %>% filter(state == "Indiana")), "\n"))
-cat(paste("Percentages consistent:", percentages_consistent(foia_combined %>% filter(state == "Indiana")), "\n"))
+cat("\n\n### Data Validation Summary\n\n")
+validation_results <- data.frame(
+  Check = c("Counts Consistency", "Percentages Consistency"),
+  Status = c(
+    ifelse(counts_consistent(foia_combined %>% filter(state == "Indiana")), 
+           "✓ Pass", "✗ Fail"),
+    ifelse(percentages_consistent(foia_combined %>% filter(state == "Indiana")), 
+           "✓ Pass", "✗ Fail")
+  )
+)
+
+kable(validation_results, align = c("l", "c"))
 ```
 
 ### Summary of Indiana Processing
@@ -2197,7 +2270,7 @@ Proportional scaling was applied and `value_source` was updated to "calculated" 
 
 ```{r}
 #| label: me-recalculate-percentages
-#| echo: true
+#| echo: false
 #| results: hold
 
 # Start with the raw data
@@ -2238,7 +2311,7 @@ All recalculated values flagged with `value_source = "calculated"`
 
 ```{r}
 #| label: me-recalculate-counts
-#| echo: true
+#| echo: false
 #| results: hold
 
 # Remove existing gender count rows to avoid duplication
@@ -2287,7 +2360,7 @@ match the master schema and appended to the `foia_combined` dataframe.
 
 ```{r}
 #| label: me-prepare-combined
-#| echo: true
+#| echo: false
 #| results: hold
 
 # Prepare the data for the combined dataset
@@ -2307,7 +2380,7 @@ required no processing.
 
 ```{r}
 #| label: me-prepare-metadata
-#| echo: true
+#| echo: false
 #| results: hold
 
 # Add Maine to the metadata table using the helper function
@@ -2338,11 +2411,10 @@ create_state_visualizations(foia_combined, "Maine")
 
 ```{r}
 #| label: me-summary
-#| echo: true
+#| echo: false
 #| results: hold
 
 cat("Maine DNA Database Summary:\n")
-cat("=", strrep("=", 40), "\n")
 
 # Total profiles by offender type
 totals <- foia_combined %>%
@@ -2353,21 +2425,40 @@ totals <- foia_combined %>%
   select(offender_type, value) %>%
   mutate(value_formatted = format(value, big.mark = ","))
 
-print(totals)
+cat("### Total Profiles by Offender Type (Maine)\n\n")
+totals %>%
+  select(offender_type, value_formatted) %>%
+  rename(`Offender Type` = offender_type,
+         `Total Profiles` = value_formatted) %>%
+  kable(align = c("l", "r"))
 
 # Data completeness
-cat("\nData completeness:\n")
+cat("\n\n### Data Completeness by Source\n\n")
 completeness <- foia_combined %>%
   filter(state == "Maine") %>%
   group_by(offender_type, value_source) %>%
-  summarise(n_values = n(), .groups = "drop")
+  summarise(n_values = n(), .groups = "drop") %>%
+  arrange(offender_type, value_source)
 
-print(completeness)
+completeness %>%
+  rename(`Offender Type` = offender_type,
+         `Value Source` = value_source,
+         `Number of Values` = n_values) %>%
+  kable(align = c("l", "l", "r"))
 
 # Final verification
-cat("\nFinal verification:\n")
-cat(paste("Counts consistent:", counts_consistent(foia_combined %>% filter(state == "Maine")), "\n"))
-cat(paste("Percentages consistent:", percentages_consistent(foia_combined %>% filter(state == "Maine")), "\n"))
+cat("\n\n### Data Validation Summary\n\n")
+validation_results <- data.frame(
+  Check = c("Counts Consistency", "Percentages Consistency"),
+  Status = c(
+    ifelse(counts_consistent(foia_combined %>% filter(state == "Maine")), 
+           "✓ Pass", "✗ Fail"),
+    ifelse(percentages_consistent(foia_combined %>% filter(state == "Maine")), 
+           "✓ Pass", "✗ Fail")
+  )
+)
+
+kable(validation_results, align = c("l", "c"))
 ```
 
 ### Summary of Maine Processing
@@ -2434,7 +2525,7 @@ Nevada uses "All" instead of "Combined", "total_flags" instead of "total_profile
 
 ```{r}
 #| label: nv-standardize-terminology
-#| echo: true
+#| echo: false
 #| results: hold
 
 # Start with raw data
@@ -2506,7 +2597,7 @@ the `foia_combined` dataframe.
 
 ```{r}
 #| label: nv-prepare-combined
-#| echo: true
+#| echo: false
 #| results: hold
 
 # Prepare the cleaned data for the combined dataset
@@ -2526,7 +2617,7 @@ performed.
 
 ```{r}
 #| label: nv-prepare-metadata
-#| echo: true
+#| echo: false
 #| results: hold
 
 # Add Nevada to the metadata table using the helper function
@@ -2560,11 +2651,10 @@ create_state_visualizations(foia_viz_data, "Nevada")
 
 ```{r}
 #| label: nv-summary
-#| echo: true
+#| echo: false
 #| results: hold
 
 cat("Nevada DNA Database Summary:\n")
-cat("=", strrep("=", 40), "\n")
 
 # Total profiles by offender type
 totals <- foia_combined %>%
@@ -2575,21 +2665,40 @@ totals <- foia_combined %>%
   select(offender_type, value) %>%
   mutate(value_formatted = format(value, big.mark = ","))
 
-print(totals)
+cat("### Total Profiles by Offender Type (Nevada)\n\n")
+totals %>%
+  select(offender_type, value_formatted) %>%
+  rename(`Offender Type` = offender_type,
+         `Total Profiles` = value_formatted) %>%
+  kable(align = c("l", "r"))
 
 # Data completeness
-cat("\nData completeness:\n")
+cat("\n\n### Data Completeness by Source\n\n")
 completeness <- foia_combined %>%
   filter(state == "Nevada") %>%
   group_by(offender_type, value_source) %>%
-  summarise(n_values = n(), .groups = "drop")
+  summarise(n_values = n(), .groups = "drop") %>%
+  arrange(offender_type, value_source)
 
-print(completeness)
+completeness %>%
+  rename(`Offender Type` = offender_type,
+         `Value Source` = value_source,
+         `Number of Values` = n_values) %>%
+  kable(align = c("l", "l", "r"))
 
 # Final verification
-cat("\nFinal verification:\n")
-cat(paste("Counts consistent:", counts_consistent(foia_combined %>% filter(state == "Nevada")), "\n"))
-cat(paste("Percentages consistent:", percentages_consistent(foia_combined %>% filter(state == "Nevada")), "\n"))
+cat("\n\n### Data Validation Summary\n\n")
+validation_results <- data.frame(
+  Check = c("Counts Consistency", "Percentages Consistency"),
+  Status = c(
+    ifelse(counts_consistent(foia_combined %>% filter(state == "Nevada")), 
+           "✓ Pass", "✗ Fail"),
+    ifelse(percentages_consistent(foia_combined %>% filter(state == "Nevada")), 
+           "✓ Pass", "✗ Fail")
+  )
+)
+
+kable(validation_results, align = c("l", "c"))
 ```
 
 ### Summary of Nevada Processing
@@ -2749,7 +2858,7 @@ standardization.
 
 ```{r}
 #| label: sd-standardize-terminology
-#| echo: true
+#| echo: false
 #| results: hold
 
 # Standardize racial terminology
@@ -2788,7 +2897,7 @@ All recalculated values flagged with `value_source = "calculated"`
 
 ```{r}
 #| label: sd-recalculate-counts
-#| echo: true
+#| echo: false
 #| results: hold
 
 # Remove existing gender count rows to avoid duplication
@@ -2819,7 +2928,7 @@ We handled this diffence of 1 by adding it to the most representative race (Whit
 
 ```{r}
 #| label: sd-adjust-counts-1
-#| echo: true
+#| echo: false
 
 # Handle the difference of 1 by adding it to the most representative race
 sd_clean <- sd_clean %>%
@@ -2856,7 +2965,7 @@ the `foia_combined` dataframe.
 
 ```{r}
 #| label: sd-prepare-combined
-#| echo: true
+#| echo: false
 #| results: hold
 
 # Prepare the cleaned data for the combined dataset
@@ -2883,7 +2992,7 @@ reporting and the terminology standardization performed.
 
 ```{r}
 #| label: sd-prepare-metadata
-#| echo: true
+#| echo: false
 #| results: hold
 
 # Add South Dakota to the metadata table using the helper function
@@ -2914,11 +3023,10 @@ create_state_visualizations(foia_combined, "South Dakota")
 
 ```{r}
 #| label: sd-summary
-#| echo: true
+#| echo: false
 #| results: hold
 
 cat("South Dakota DNA Database Summary:\n")
-cat("=", strrep("=", 40), "\n")
 
 # Total profiles by offender type
 totals <- foia_combined %>%
@@ -3024,7 +3132,7 @@ classification in the dataset.
 
 ```{r}
 #| label: tx-male-add
-#| echo: true
+#| echo: false
 #| results: hold
 
 # First, let's examine the current structure of gender data
@@ -3074,7 +3182,7 @@ instead of "White".
 
 ```{r}
 #| label: tx-standardize-terminology
-#| echo: true
+#| echo: false
 #| results: hold
 
 # Standardize offender types and racial terminology
@@ -3108,7 +3216,7 @@ The calculated values are added with a **`value_source = "calculated"`** tag to 
 
 ```{r}
 #| label: tx-add-unknown
-#| echo: true
+#| echo: false
 #| results: hold
 
 # Add Unknown race category to reconcile totals
@@ -3129,7 +3237,7 @@ separately. We calculate Combined totals.
 
 ```{r}
 #| label: tx-create-combined
-#| echo: true
+#| echo: false
 #| results: hold
 
 # Calculate Combined totals using helper function
@@ -3154,7 +3262,7 @@ analysis.
 
 ```{r}
 #| label: tx-calculate-percentages
-#| echo: true
+#| echo: false
 #| results: hold
 
 # Derive percentages from counts
@@ -3201,7 +3309,7 @@ the `foia_combined` dataframe.
 
 ```{r}
 #| label: tx-prepare-combined
-#| echo: true
+#| echo: false
 #| results: hold
 
 # Prepare the cleaned data for the combined dataset
@@ -3220,7 +3328,7 @@ The metadata is added with details on all processing steps performed.
 
 ```{r}
 #| label: tx-prepare-metadata
-#| echo: true
+#| echo: false
 #| results: hold
 
 # Add Texas to the metadata table using the helper function
@@ -3261,11 +3369,10 @@ create_demographic_bar_charts(foia_combined, "Texas")
 
 ```{r}
 #| label: tx-summary
-#| echo: true
+#| echo: false
 #| results: hold
 
 cat("Texas DNA Database Summary:\n")
-cat("=", strrep("=", 40), "\n")
 
 # Total profiles by offender type
 totals <- foia_combined %>%
@@ -3276,21 +3383,39 @@ totals <- foia_combined %>%
   select(offender_type, value, value_source) %>%
   mutate(value_formatted = format(value, big.mark = ","))
 
-print(totals)
+cat("### Total Profiles by Offender Type (Texas)\n\n")
+totals %>%
+  select(offender_type, value_formatted, value_source) %>%
+  rename(`Offender Type` = offender_type,
+         `Total Profiles` = value_formatted,
+         `Source` = value_source) %>%
+  kable(align = c("l", "r", "l"))
 
 # Data completeness by value source
-cat("\nData completeness by source:\n")
+cat("\n\n### Data Completeness by Source\n\n")
 completeness <- foia_combined %>%
   filter(state == "Texas") %>%
   group_by(value_source) %>%
   summarise(n_values = n(), .groups = "drop")
 
-print(completeness)
+completeness %>%
+  rename(`Value Source` = value_source,
+         `Number of Values` = n_values) %>%
+  kable(align = c("l", "r"))
 
 # Final verification
-cat("\nFinal verification:\n")
-cat(paste("Counts consistent:", counts_consistent(foia_combined %>% filter(state == "Texas")), "\n"))
-cat(paste("Percentages consistent:", percentages_consistent(foia_combined %>% filter(state == "Texas")), "\n"))
+cat("\n\n### Data Validation Summary\n\n")
+validation_results <- data.frame(
+  Check = c("Counts Consistency", "Percentages Consistency"),
+  Status = c(
+    ifelse(counts_consistent(foia_combined %>% filter(state == "Texas")), 
+           "✓ Pass", "✗ Fail"),
+    ifelse(percentages_consistent(foia_combined %>% filter(state == "Texas")), 
+           "✓ Pass", "✗ Fail")
+  )
+)
+
+kable(validation_results, align = c("l", "c"))
 ```
 
 ### Summary of Texas Processing
@@ -3417,51 +3542,6 @@ race_heatmap_blue <- combined_data_complete %>%
        title = "Racial Composition in State DNA Databases")
 
 print(race_heatmap_blue)
-```
-
-## Metadata table
-
-```{r}
-#| label: metadata-table
-#| echo: false
-
-kable(foia_state_metadata, booktabs = TRUE, longtable = TRUE) %>%
-  kable_styling(latex_options = c("striped", "scale_down", "repeat_header"),
-                font_size = 9)
-```
-
-# Saving Processed Data
-
-```{r}
-#| label: save-outputs
-#| echo: true
-#| message: false
-#| results: hold
-
-# Define output paths
-output_dir <- here("data", "foia", "final")
-dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
-
-# Save the combined dataset
-foia_output_path <- here(output_dir, "foia_data_clean.csv")
-write_csv(foia_combined, foia_output_path)
-cat(paste("✓ Saved combined FOIA data to:", foia_output_path, "\n"))
-
-# Save the metadata
-metadata_dir <- here("data", "foia", "intermediate")
-metadata_output_path <- here(metadata_dir, "foia_state_metadata.csv")
-write_csv(foia_state_metadata, metadata_output_path)
-cat(paste("✓ Saved state metadata to:", metadata_output_path, "\n"))
-
-# Create final frozen version (v1.0)
-frozen_dir <- here("data", "v1.0")
-dir.create(frozen_dir, recursive = TRUE, showWarnings = FALSE)
-
-frozen_path <- here(frozen_dir, "FOIA_demographics.csv")
-write_csv(foia_combined, frozen_path)
-cat(paste("✓ Created frozen version 1.0 at:", frozen_path, "\n"))
-
-cat("\n✅ All processing complete! The data is now ready for analysis.\n")
 ```
 
 # Conclusions
