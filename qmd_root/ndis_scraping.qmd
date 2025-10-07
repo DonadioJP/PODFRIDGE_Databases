@@ -47,7 +47,7 @@ This project focuses on systematically compiling the growth and evolution of NDI
 #| warning: false
 #| code-fold: true
 #| code-summary: "Show Configuration code"
-#| results: hide
+#| output: false
 
 import sys
 import subprocess
@@ -385,16 +385,15 @@ def search_post2007_snapshots():
 #| echo: true
 #| code-fold: true
 #| code-summary: "Show search code"
-#| results: hide
+#| output: false
+#| message: false
+#| warning: false
 
-print("🔍 STEP 1: Searching for ALL snapshots (no limits)...")
 pre2007_df, _ = search_pre2007_snapshots()
 post2007_df, _ = search_post2007_snapshots()
 
 # Combine all snapshots
 snap_df = pd.concat([pre2007_df, post2007_df]).drop_duplicates("timestamp").sort_values("timestamp").reset_index(drop=True)
-
-print(f"\n🎯 Total snapshots found: {len(snap_df):,}")
 
 # Save search metadata
 search_meta = {
@@ -409,8 +408,6 @@ search_meta = {
 
 with open(META_DIR / "search_metadata.json", "w") as f:
     json.dump(search_meta, f, indent=2)
-
-print(f"💾 Search metadata saved: {META_DIR / 'search_metadata.json'}")
 
 ```
 
@@ -528,7 +525,9 @@ The download execution phase performs bulk retrieval of historical NDIS snapshot
 #| echo: true
 #| code-fold: true
 #| code-summary: "Show download execution code"
-#| results: hide
+#| output: false
+#| message: false
+#| warning: false
 
 def download_snapshots(snap_df, limit=None):
     """

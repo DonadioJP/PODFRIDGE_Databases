@@ -1,24 +1,9 @@
 {
-  "download_completed": "2025-10-04T22:45:37.746367",
-  "total_attempted": 10119,
-  "successful": 10069,
-  "failed": 50,
+  "download_completed": "2025-10-05T22:48:59.585342",
+  "total_attempted": 10310,
+  "successful": 10262,
+  "failed": 48,
   "failed_downloads": [
-    {
-      "timestamp": "20010913054623",
-      "url": "http://www.fbi.gov:80/hq/lab/codis/mn.htm",
-      "archive_url": "https://web.archive.org/web/20010913054623id_/http://www.fbi.gov:80/hq/lab/codis/mn.htm"
-    },
-    {
-      "timestamp": "20010913054632",
-      "url": "http://www.fbi.gov:80/hq/lab/codis/ut.htm",
-      "archive_url": "https://web.archive.org/web/20010913054632id_/http://www.fbi.gov:80/hq/lab/codis/ut.htm"
-    },
-    {
-      "timestamp": "20010913054635",
-      "url": "http://www.fbi.gov:80/hq/lab/codis/wv.htm",
-      "archive_url": "https://web.archive.org/web/20010913054635id_/http://www.fbi.gov:80/hq/lab/codis/wv.htm"
-    },
     {
       "timestamp": "20010913121927",
       "url": "http://www2.fbi.gov:80/hq/lab/codis/ut.htm",
@@ -233,6 +218,11 @@
       "timestamp": "20081122103307",
       "url": "http://www.fbi.gov/hq/lab/codis/il.htm",
       "archive_url": "https://web.archive.org/web/20081122103307id_/http://www.fbi.gov/hq/lab/codis/il.htm"
+    },
+    {
+      "timestamp": "20081122103506",
+      "url": "http://www.fbi.gov/hq/lab/codis/army.htm",
+      "archive_url": "https://web.archive.org/web/20081122103506id_/http://www.fbi.gov/hq/lab/codis/army.htm"
     },
     {
       "timestamp": "20081122103842",
