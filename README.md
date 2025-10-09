@@ -141,39 +141,15 @@ All final datasets are archived and publicly available on Zenodo:
 
 The repository includes:
 - `NDIS_time_series.csv` - Monthly NDIS statistics (2001-2025)
-- `SDIS_cross_section.csv` - State-level profiles and policies (2025)
-- `FOIA_Demographics.csv` - Demographic composition from FOIA responses
-- `Annual_DNA_Collection.csv` - Annual collection rates (Murphy & Tong 2020)
+- `SDIS_cross_section.csv` - State-level profiles and policies
+- `FOIA_Demographics.csv` - Demographic composition from FOIA responses (Murphy & Tong, 2020)
+- `Annual_DNA_Collection.csv` - Annual collection rates (Murphy & Tong, 2020)
 - Raw HTML files, intermediate processing outputs, and complete documentation
 
 For detailed data dictionaries and usage notes, see `data/README.md`.
 
-## Citation
-
-If you use these data or code, please cite both the dataset and the associated paper:
-```bibtex
-@article{lasisi2025dna,
-  title={United States forensic DNA databases: national time series (2001–2025) and state cross-sections},
-  author={Lasisi, Temi and Donadio, J. P. and Muller, M. and Wilson, J. and Mooney, J. and Edge, Michael D.},
-  journal={-},
-  year={2025},
-  note={In press}
-}
-
-@dataset{lasisi2025dna_data,
-  author={Lasisi, Temi and Donadio, J. P. and Muller, M. and Wilson, J. and Mooney, J. and Edge, Michael D.},
-  title={United States forensic DNA databases: NDIS, SDIS, and FOIA datasets},
-  year={2025},
-  publisher={Zenodo},
-  doi={[to be added]}
-}
-```
-
 ## License
 Code: MIT License
 Data: CC BY 4.0 (pending Zenodo publication; FOIA-derived data subject to original authors' permissions)
-
-## Acknowledgments
-We thank Erin Murphy for providing access to state-level demographic disclosures and FOIA response materials. We acknowledge the Internet Archive's Wayback Machine for preserving historical web content that made this reconstruction possible.
 
 Last update: October 5th, 2025
