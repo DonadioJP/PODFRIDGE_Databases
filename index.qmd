@@ -13,7 +13,7 @@ format:
 
 PODFRIDGE-Databases is a comprehensive research platform analyzing forensic DNA database systems in the United States. This project combines multiple data sources to examine the growth, composition, and demographic patterns within national and state DNA index systems.
 
-## Research Projects
+## Project Sections
 
 ### 1. NDIS Database Analysis
 **Tracking FBI's National DNA Index System (2001-2025)**

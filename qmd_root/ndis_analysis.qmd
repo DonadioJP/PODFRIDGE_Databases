@@ -865,7 +865,7 @@ p_arrestee_yearly
 
 **Example:** *California 2024 Typo*
 
-[California 2024 Data Typo](figures/ndis/typos/california2024.png)
+![California 2024 Data Typo](figures/ndis/typos/california2024.png)
 
 ```{r}
 #| label: investigations-plots-correction
@@ -1012,7 +1012,7 @@ p_investigations_yearly
  
 **Example:** *Oklahoma Typo*
 
-[Oklahoma 2008 Data Typo](figures/ndis/typos/oklahoma2008.png)
+![Oklahoma 2008 Data Typo](figures/ndis/typos/oklahoma2008.png)
 
 ```{r}
 #| label: labs-plots-correction

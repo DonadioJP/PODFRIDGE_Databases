@@ -551,7 +551,8 @@ final_df_clean <- final_df_clean %>%
 methodology_summary <- final_df_clean %>%
   distinct(state, legal_framework, collection_triggers, collection_trigger_category, 
            data_limitations, data_limitation_category, source_url) %>%
-  arrange(state)
+  arrange(state) %>%
+  mutate(state = str_trim(state))
 
 # Create interactive table
 datatable_methodology <- datatable(
