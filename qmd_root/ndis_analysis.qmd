@@ -1135,28 +1135,55 @@ ndis_clean <- offender_clean %>%
   ) %>%
   arrange(jurisdiction, year_month)
 
-# Get yearly data
-growth_data_yearly <- ndis_clean %>%
-  mutate(year = year(year_month)) %>%
-  group_by(jurisdiction, year) %>%
-  arrange(jurisdiction, year_month) %>%
-  mutate(
-    selection_priority = case_when(
-      year <= 2018 ~ arrestee,
-      year > 2018 ~ offender_profiles
-    )
-  ) %>%
-  slice_max(order_by = selection_priority, n = 1, with_ties = FALSE) %>%
-  ungroup() %>%
-  group_by(year) %>%
+ndis_clean <- ndis_clean %>%
+  group_by(jurisdiction, year_month) %>%
   summarise(
-    offender_total = sum(offender_profiles, na.rm = TRUE),
-    arrestee_total = sum(arrestee, na.rm = TRUE),
-    forensic_total = sum(forensic_profiles, na.rm = TRUE),
-    investigations_total = sum(investigations_aided, na.rm = TRUE),
-    n_jurisdictions = n(),
+    offender_profiles = ifelse(all(is.na(offender_profiles)), 0, max(offender_profiles, na.rm = TRUE)),
+    arrestee = ifelse(all(is.na(arrestee)), 0, max(arrestee, na.rm = TRUE)),
+    forensic_profiles = ifelse(all(is.na(forensic_profiles)), 0, max(forensic_profiles, na.rm = TRUE)),
+    investigations_aided = ifelse(all(is.na(investigations_aided)), 0, max(investigations_aided, na.rm = TRUE)),
+    ndis_labs = ifelse(all(is.na(ndis_labs)), 0, max(ndis_labs, na.rm = TRUE)),
     .groups = 'drop'
   ) %>%
+  mutate(year_month_date = as.Date(paste0(year_month, "-01"))) %>%
+  mutate(
+    year = year(year_month_date),
+    month = month(year_month_date)
+  ) %>%
+  filter(!if_all(c(offender_profiles, arrestee, forensic_profiles), ~ . == 0)) %>%   # Keep only rows where at least one DNA-related column is non-zero
+  arrange(jurisdiction, year_month_date)
+
+# Get yearly data
+growth_data_yearly <- ndis_clean %>%
+  mutate(
+    year = year(year_month_date),
+    offender_profiles = ifelse(is.na(offender_profiles), 0, offender_profiles),
+    arrestee = ifelse(is.na(arrestee), 0, arrestee),
+    forensic_profiles = ifelse(is.na(forensic_profiles), 0, forensic_profiles)
+  ) %>%
+  # Get max per jurisdiction per year
+  group_by(year, jurisdiction) %>%
+  summarise(
+    offender = max(offender_profiles, na.rm = TRUE),
+    arrestee = max(arrestee, na.rm = TRUE),
+    forensic = max(forensic_profiles, na.rm = TRUE),
+    investigations = max(investigations_aided, na.rm = TRUE),
+    ndis_labs = max(ndis_labs, na.rm = TRUE),
+    .groups = 'drop'
+  ) %>%
+  # Sum across jurisdictions per year
+  group_by(year) %>%
+  summarise(
+    jurisdictions = n(),
+    offender_total = sum(offender, na.rm = TRUE),
+    arrestee_total = sum(arrestee, na.rm = TRUE),
+    forensic_total = sum(forensic, na.rm = TRUE),
+    investigations_total = sum(investigations, na.rm = TRUE),
+    ndis_labs_total = sum(ndis_labs, na.rm = TRUE),
+    total_profiles = offender_total + arrestee_total + forensic_total,
+    .groups = 'drop'
+  ) %>%
+  arrange(year) %>%
   mutate(date = as.Date(paste0(year, "-01-01")))
 
 # Calculate scale factor for dual y-axes
@@ -1192,7 +1219,6 @@ investigations_data <- growth_data_yearly %>%
 
 #### Interactive Plot ####
 
-# Create separate traces for each variable
 p_interactive <- plot_ly() %>%
   # DNA Profiles
   add_trace(
@@ -1241,13 +1267,21 @@ p_interactive <- plot_ly() %>%
     yaxis = list(
       title = "DNA Profiles",
       side = 'left',
-      showgrid = TRUE
+      showgrid = TRUE,
+      zeroline = TRUE,
+      automargin = TRUE  # <-- ensures title and ticks don’t overlap
     ),
     yaxis2 = list(
       title = "Investigations Aided",
       side = 'right',
       overlaying = 'y',
-      showgrid = FALSE
+      anchor = 'x',
+      position = 1,          # push axis fully to right
+      showgrid = FALSE,
+      zeroline = FALSE,
+      automargin = TRUE,     # prevent overlapping
+      titlefont = list(size = 12),
+      tickfont = list(size = 10)
     ),
     legend = list(
       x = 0.01,
@@ -1285,7 +1319,7 @@ p_static <- ggplot() +
              aes(x = date, y = count_scaled, color = variable), 
              size = 2) +
   scale_x_date(
-    date_breaks = "2 years",
+    date_breaks = "1 years",
     date_labels = "%Y",
     limits = extended_date_range, 
     expand = expansion(mult = 0.02)
@@ -1304,14 +1338,14 @@ p_static <- ggplot() +
                           ifelse(x >= 1e6, paste0(x/1e6, "M"), 
                                  ifelse(x >= 1e3, paste0(x/1e3, "K"), x))
                         },
-                        breaks = seq(0, max_investigations, by = 200000))
+                        breaks = seq(0, max_investigations, by = 100000))
   ) +
   scale_color_manual(
     name = NULL,
-    values = c("Offender" = "#0072B2", 
-               "Arrestee" = "#D55E00", 
-               "Forensic" = "#009E73",
-               "Investigations" = "#CC79A7")
+    values = c("Offender" = "#1f4e79", 
+               "Arrestee" = "#2e75b6", 
+               "Forensic" = "#5b9bd5",
+               "Investigations" = "#c00000") 
   ) +
   theme_minimal(base_size = 11) +
   theme(
@@ -1319,12 +1353,12 @@ p_static <- ggplot() +
     axis.line = element_line(color = "black", linewidth = 0.5),
     axis.ticks = element_line(color = "black", linewidth = 0.5),
     axis.text = element_text(color = "black", size = 10),
-    axis.text.x = element_text(angle = 0, hjust = 0.5),
+    axis.text.x = element_text(angle = 45, hjust = 1),
     axis.text.y.right = element_text(margin = margin(l = 15)),
-    axis.title = element_text(color = "black", size = 11, face = "bold"),
-    axis.title.x = element_text(margin = margin(t = 15)),
-    axis.title.y.right = element_text(margin = margin(l = 25)),
-    axis.title.y.left = element_text(margin = margin(r = 10)),
+    axis.title = element_text(size = 11, face = "bold"),
+    axis.title.x = element_text(color = "black", margin = margin(t = 15)),
+    axis.title.y.left = element_text(color = "#1f4e79", margin = margin(r = 10)),
+    axis.title.y.right = element_text(color = "#c00000", margin = margin(l = 25)),
     legend.position = "none",
     plot.margin = margin(5, 10, 5, 10),
     aspect.ratio = 0.6
@@ -1335,48 +1369,47 @@ p_static <- ggplot() +
   ) +
   # DNA Profiles legend box
   annotate("rect", xmin = legend_start_date, 
-           xmax = legend_start_date + years(5), 
-           ymin = max_dna * 0.90, ymax = max_dna, 
+           xmax = legend_start_date + years(5) + months(6), 
+           ymin = max_dna * 0.88, ymax = max_dna, 
            fill = "white", color = "black", alpha = 0.9, linewidth = 0.3) +
   # Investigations legend box
   annotate("rect", xmin = legend_start_date, 
-           xmax = legend_start_date + years(6), 
-           ymin = max_dna * 0.80, ymax = max_dna * 0.84, 
+           xmax = legend_start_date + years(6) + months(6), 
+           ymin = max_dna * 0.76, ymax = max_dna * 0.82, 
            fill = "white", color = "black", alpha = 0.9, linewidth = 0.3) +
   # DNA Profiles legend items
   annotate("point", 
            x = legend_start_date + years(0) + months(6), 
-           y = c(max_dna * 0.98, max_dna * 0.95, max_dna * 0.92),
-           color = c("#0072B2", "#D55E00", "#009E73"), size = 3) +
+           y = c(max_dna * 0.97, max_dna * 0.94, max_dna * 0.91),
+           color = c("#1f4e79", "#2e75b6", "#5b9bd5"), size = 2) +
   annotate("text", 
            x = legend_start_date + years(1), 
-           y = c(max_dna * 0.98, max_dna * 0.95, max_dna * 0.92),
+           y = c(max_dna * 0.97, max_dna * 0.94, max_dna * 0.91),
            label = c("Offender Profiles", "Arrestee Profiles", "Forensic Profiles"),
            hjust = 0, size = 3.2) +
   annotate("text", 
            x = legend_start_date + years(0), 
-           y = max_dna, 
-           label = "DNA Profiles", 
-           fontface = "bold", hjust = 0, size = 3.5, vjust = -0.5) +
+           y = max_dna * 1.01, 
+           label = "DNA Profiles (Millions)", 
+           fontface = "bold", hjust = 0, size = 3.5, vjust = 0) +
   # Investigations Aided legend
   annotate("point", 
            x = legend_start_date + years(0) + months(6), 
-           y = max_dna * 0.82, 
-           color = "#CC79A7", size = 3) +
+           y = max_dna * 0.79, 
+           color = "#c00000", size = 2) +
   annotate("text", 
            x = legend_start_date + years(1), 
-           y = max_dna * 0.82, 
+           y = max_dna * 0.79, 
            label = "Investigations Aided",
            hjust = 0, size = 3.2) +
   annotate("text", 
-           x = legend_start_date + years(0) + months(6), 
-           y = max_dna * 0.84, 
-           label = "Investigations", 
-           fontface = "bold", hjust = 0, size = 3.5, vjust = -0.5)
+           x = legend_start_date + years(0), 
+           y = max_dna * 0.83, 
+           label = "Investigations (Thousands)", 
+           fontface = "bold", hjust = 0, size = 3.5, vjust = 0)
 
 p_static
 ```
-
 
 ### Anomaly Detection and Metadata Logging
 
@@ -1596,7 +1629,7 @@ anomaly_overview <- anomaly_log %>%
       affected_jurisdictions = n_distinct(jurisdiction),
       .groups = "drop"
     ) %>%
-    arrange(factor(metric, levels = metric_order))  # Ensure correct order
+    arrange(factor(metric, levels = metric_order))
   
 print(knitr::kable(anomaly_overview, format = "simple", caption = "Overview of Detected Anomalies"))
   
@@ -1604,7 +1637,7 @@ print(knitr::kable(anomaly_overview, format = "simple", caption = "Overview of D
 p_anomaly_summary <- anomaly_log %>%
     group_by(metric, jurisdiction) %>%
     summarise(count = n(), .groups = "drop") %>%
-    mutate(metric = factor(metric, levels = metric_order)) %>%  # Ensure correct order
+    mutate(metric = factor(metric, levels = metric_order)) %>%
     plot_ly(
       x = ~jurisdiction,
       y = ~count,
@@ -1612,17 +1645,69 @@ p_anomaly_summary <- anomaly_log %>%
       type = "bar",
       text = ~count,
       textposition = "auto",
-      colors = c("#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd")  # Consistent colors
+      colors = c("#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd")
     ) %>%
     layout(
       title = "Anomaly Distribution by Jurisdiction and Metric",
       xaxis = list(title = "Jurisdiction"),
       yaxis = list(title = "Number of Anomalies"),
       barmode = "stack",
-      legend = list(traceorder = "normal")  # Ensures legend follows metric order
+      legend = list(traceorder = "normal")
     )
   
 p_anomaly_summary
+
+### Publication-ready plot
+# Summarize data
+anomaly_summary <- anomaly_log %>%
+  group_by(metric, jurisdiction) %>%
+  summarise(count = n(), .groups = "drop") %>%
+  mutate(metric = factor(metric, levels = c(
+    "Offender Profiles", 
+    "Arrestee Profiles", 
+    "Forensic Profiles",
+    "Investigations Aided", 
+    "NDIS Labs"
+  )))
+
+# Custom colors matching your preferred scheme
+metric_colors <- c(
+  "Offender Profiles"   = "#1f4e79",  # Deep blue
+  "Arrestee Profiles"   = "#2e75b6",  # Medium blue
+  "Forensic Profiles"   = "#5b9bd5",  # Light blue
+  "Investigations Aided"= "#c00000",  # Red
+  "NDIS Labs"           = "#7030a0"   # Purple
+)
+
+# Static publication-ready plot
+p_anomaly_static <- ggplot(anomaly_summary, aes(x = jurisdiction, y = count, fill = metric)) +
+  geom_bar(stat = "identity", position = "stack", color = "black", linewidth = 0.3, width = 1) +
+  scale_fill_manual(name = "Metric", values = metric_colors) +
+  labs(
+    title = "Anomaly Distribution by Jurisdiction and Metric",
+    x = "Jurisdiction",
+    y = "Number of Anomalies"
+  ) +
+  theme_minimal(base_size = 10) +
+  scale_y_continuous(
+  limits = c(0, NA),   # start at 0
+  expand = c(0, 0)     # remove extra padding
+) +
+  theme(
+    panel.grid = element_blank(),
+    axis.line = element_line(color = "black", linewidth = 0.4),
+    axis.ticks = element_line(color = "black", linewidth = 0.4),
+    axis.text = element_text(color = "black", size = 7),
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    axis.title.x = element_text(size = 10, face = "bold", margin = margin(t = 15)),
+    axis.title = element_text(size = 10, face = "bold"),
+    legend.title = element_text(size = 10, face = "bold"),
+    legend.text = element_text(size = 9),
+    plot.title = element_text(face = "bold", size = 12, hjust = 0.5, margin = margin(b = 10)),
+    aspect.ratio = 0.65
+  )
+
+p_anomaly_static
 
 # Saving anomaly log
 anomaly_dir <- here("data", "ndis", "intermediate", "anomaly_log.csv")
@@ -1638,6 +1723,8 @@ The heat map visualizes the temporal coverage of NDIS data submissions across di
 #| echo: true
 #| code-fold: true
 #| code-summary: "Show heatmap code"
+#| fig-width: 8  # Reduced from default 10-12 to 8
+#| fig-height: 6
 
 # Prepare data for heatmap - INTERMEDIATE DATASET
 temporal_coverage_intermediate <-  ndis_data %>%
@@ -1654,11 +1741,11 @@ heatmap_raw <- ggplot(temporal_coverage_intermediate, aes(x = year, y = jurisdic
     name = "Snapshots\nper Year",
     option = "plasma",
     direction = -1,
-    breaks = c(0, 6, 12, 24, 48),
-    labels = c("0", "6", "12", "24", "48+")
+    breaks = c(0, 12, 24, 48),
+    labels = c("0", "12", "24", "48+")
   ) +
   scale_x_continuous(
-    breaks = seq(2001, 2025, by = 1), 
+    breaks = seq(2001, 2025, by = 1),
     expand = expansion(mult = 0.01)
   ) +
   labs(
@@ -1670,14 +1757,17 @@ heatmap_raw <- ggplot(temporal_coverage_intermediate, aes(x = year, y = jurisdic
   theme_minimal(base_size = 10) +
   theme(
     panel.grid = element_blank(),
-    axis.text.x = element_text(angle = 45, hjust = 1, size = 8),
-    axis.text.y = element_text(size = 6),
-    plot.title = element_text(face = "bold", size = 11, hjust = 0),
-    plot.subtitle = element_text(size = 9, hjust = 0),
+    axis.text.x = element_text(angle = 45, hjust = 1, size = 9),
+    axis.text.y = element_text(size = 9),
+    plot.title = element_text(face = "bold", size = 14, hjust = 0),
+    plot.subtitle = element_text(size = 11, hjust = 0),
     legend.position = "right",
-    legend.key.height = unit(0.8, "cm"),
-    legend.key.width = unit(0.3, "cm"),
-    axis.title.x = element_text(margin = margin(t = 12))
+    legend.key.height = unit(0.6, "cm"), 
+    legend.key.width = unit(0.2, "cm"), 
+    legend.text = element_text(size = 9),
+    legend.title = element_text(size = 11), 
+    axis.title.x = element_text(margin = margin(t = 12)),
+    axis.title.y = element_text(size = 11, margin = margin(r = 26))
   )
 
 heatmap_raw
@@ -1697,11 +1787,11 @@ heatmap_after_clean <- ggplot(temporal_coverage_clean, aes(x = year, y = jurisdi
     name = "Snapshots\nper Year",
     option = "plasma",
     direction = -1,
-    breaks = c(0, 1, 3, 6, 10),
-    labels = c("0", "1", "3", "6", "10+")
+    breaks = c(0, 3, 6, 10),
+    labels = c("0", "3", "6", "10+")
   ) +
   scale_x_continuous(
-    breaks = seq(2001, 2025, by = 1),
+    breaks = seq(2001, 2025, by = 2),  # Reduced frequency of x-axis labels
     expand = expansion(mult = 0.01)
   ) +
   labs(
@@ -1710,17 +1800,20 @@ heatmap_after_clean <- ggplot(temporal_coverage_clean, aes(x = year, y = jurisdi
     title = "Temporal Coverage Heatmap - Cleaned Data",
     subtitle = "Shows data submission frequency after validation-based cleaning"
   ) +
-  theme_minimal(base_size = 10) +
+  theme_minimal(base_size = 10)  +
   theme(
     panel.grid = element_blank(),
-    axis.text.x = element_text(angle = 45, hjust = 1, size = 8),
-    axis.text.y = element_text(size = 6),
-    plot.title = element_text(face = "bold", size = 11, hjust = 0),
-    plot.subtitle = element_text(size = 9, hjust = 0),
+    axis.text.x = element_text(angle = 45, hjust = 1, size = 9),
+    axis.text.y = element_text(size = 9),
+    plot.title = element_text(face = "bold", size = 14, hjust = 0),
+    plot.subtitle = element_text(size = 11, hjust = 0),
     legend.position = "right",
-    legend.key.height = unit(0.8, "cm"),
-    legend.key.width = unit(0.3, "cm"),
-    axis.title.x = element_text(margin = margin(t = 12))
+    legend.key.height = unit(0.6, "cm"), 
+    legend.key.width = unit(0.2, "cm"), 
+    legend.text = element_text(size = 9),
+    legend.title = element_text(size = 11), 
+    axis.title.x = element_text(margin = margin(t = 12)),
+    axis.title.y = element_text(size = 11, margin = margin(r = 26))
   )
 
 heatmap_after_clean
@@ -1855,28 +1948,30 @@ p_dna_profiles <- ggplot() +
   # Add literature points - Total profiles
   geom_point(data = literature_dna %>% filter(variable == "Total"),
              aes(x = asof_date, y = count),
-             shape = 4, size = 4, stroke = 1.5, color = "black") +
+             shape = 4, size = 5, stroke = 2, color = "black") +
   
   # Add literature points - Individual profile types
   geom_point(data = literature_dna %>% filter(variable != "Total"),
              aes(x = asof_date, y = count, color = variable),
-             shape = 4, size = 3, stroke = 1.2) +
+             shape = 4, size = 5, stroke = 2) +
   
-  # Add citation labels
-  geom_text_repel(
+  # Add citation labels with white boxes
+  geom_label_repel(
     data = literature_dna %>% filter(variable == "Total"),
     aes(x = asof_date, y = count, label = short_label),
-    size = 3, box.padding = 0.5, point.padding = 0.3,
+    size = 5, box.padding = 0.5, point.padding = 0.5,
     min.segment.length = 0, segment.color = "gray50",
-    max.overlaps = 20
+    max.overlaps = 20,
+    fill = "white", label.size = 0.3, label.padding = unit(0.3, "lines")
   ) +
   
-  geom_text_repel(
+  geom_label_repel(
     data = literature_dna %>% filter(variable != "Total"),
     aes(x = asof_date, y = count, label = short_label),
-    size = 3, box.padding = 0.5, point.padding = 0.3,
+    size = 4, box.padding = 0.5, point.padding = 0.5,
     min.segment.length = 0, segment.color = "gray50",
-    max.overlaps = 20
+    max.overlaps = 20,
+    fill = "white", label.size = 0.3, label.padding = unit(0.3, "lines")
   ) +
 
   scale_x_date(
@@ -1900,22 +1995,23 @@ p_dna_profiles <- ggplot() +
     values = c("Offender" = "#0072B2", 
                "Arrestee" = "#D55E00", 
                "Forensic" = "#009E73",
-               "Total" = "#56B4E9")
+               "Total" = "black")
   ) +
-  theme_minimal(base_size = 11) +
+  theme_minimal(base_size = 14) +
   theme(
     panel.grid.major.y = element_line(color = "gray90", linewidth = 0.3),
     panel.grid.minor = element_blank(),
     panel.grid.major.x = element_blank(),
     axis.line = element_line(color = "black", linewidth = 0.5),
     axis.ticks = element_line(color = "black", linewidth = 0.5),
-    axis.text = element_text(color = "black", size = 10),
+    axis.text = element_text(color = "black", size = 13),
     axis.text.x = element_text(angle = 45, hjust = 1),
-    axis.title = element_text(color = "black", size = 11, face = "bold"),
+    axis.title = element_text(color = "black", size = 14, face = "bold"),
     axis.title.x = element_text(margin = margin(t = 15)),
     axis.title.y = element_text(margin = margin(r = 10)),
     legend.position = "none",
     plot.margin = margin(5, 10, 5, 10),
+    plot.title = element_text(size = 16, face = "bold"),
     aspect.ratio = 0.6
   ) +
   labs(
@@ -1924,29 +2020,29 @@ p_dna_profiles <- ggplot() +
   ) +
   # DNA Profiles legend box
   annotate("rect", xmin = legend_start_date, 
-           xmax = legend_start_date + years(5), 
-           ymin = max_dna * 0.84, ymax = max_dna, 
+           xmax = legend_start_date + years(7), 
+           ymin = max_dna * 0.80, ymax = max_dna, 
            fill = "white", color = "black", alpha = 0.9, linewidth = 0.3) +
   # Legend items
   annotate("point", 
            x = legend_start_date + months(6), 
-           y = c(max_dna * 0.98, max_dna * 0.95, max_dna * 0.92, max_dna * 0.89),
-           color = c("#0072B2", "#D55E00", "#009E73", "#56B4E9"), size = 3) +
+           y = c(max_dna * 0.98, max_dna * 0.94, max_dna * 0.90, max_dna * 0.86),
+           color = c("#0072B2", "#D55E00", "#009E73", "#56B4E9"), size = 4) +
   annotate("text", 
            x = legend_start_date + years(1), 
-           y = c(max_dna * 0.98, max_dna * 0.95, max_dna * 0.92, max_dna * 0.89),
+           y = c(max_dna * 0.98, max_dna * 0.94, max_dna * 0.90, max_dna * 0.86),
            label = c("Offender", "Arrestee", "Forensic", "Total"),
-           hjust = 0, size = 3.2) +
+           hjust = 0, size = 4.5) +
   # Literature reference symbol
   annotate("point",
            x = legend_start_date + months(6),
-           y = max_dna * 0.86,
-           shape = 4, size = 3, stroke = 1.2, color = "black") +
+           y = max_dna * 0.82,
+           shape = 4, size = 4, stroke = 1.5, color = "black") +
   annotate("text",
            x = legend_start_date + years(1),
-           y = max_dna * 0.86,
+           y = max_dna * 0.82,
            label = "Literature Citation",
-           hjust = 0, size = 3.2)
+           hjust = 0, size = 4.5)
 
 print(p_dna_profiles)
 
@@ -1966,15 +2062,16 @@ p_investigations <- ggplot() +
   # Add literature points
   geom_point(data = literature_investigations,
              aes(x = asof_date, y = investigations_aided),
-             shape = 4, size = 4, stroke = 1.5, color = "black") +
+             shape = 4, size = 5, stroke = 2, color = "black") +
   
-  # Add text labels
-  geom_text_repel(
+  # Add text labels with white boxes
+  geom_label_repel(
     data = literature_investigations,
     aes(x = asof_date, y = investigations_aided, label = short_label),
-    size = 3, box.padding = 0.5, point.padding = 0.3,
+    size = 5, box.padding = 0.5, point.padding = 0.5,
     min.segment.length = 0, segment.color = "gray50",
-    max.overlaps = 20
+    max.overlaps = 20,
+    fill = "white", label.size = 0.3, label.padding = unit(0.3, "lines")
   ) +
   
   scale_x_date(
@@ -1993,19 +2090,20 @@ p_investigations <- ggplot() +
     limits = c(0, y_upper_inv),
     expand = expansion(mult = c(0, 0.02))
   ) +
-  theme_minimal(base_size = 11) +
+  theme_minimal(base_size = 14) +
   theme(
     panel.grid.major.y = element_line(color = "gray90", linewidth = 0.3),
     panel.grid.minor = element_blank(),
     panel.grid.major.x = element_blank(),
     axis.line = element_line(color = "black", linewidth = 0.5),
     axis.ticks = element_line(color = "black", linewidth = 0.5),
-    axis.text = element_text(color = "black", size = 10),
+    axis.text = element_text(color = "black", size = 13),
     axis.text.x = element_text(angle = 45, hjust = 1),
-    axis.title = element_text(color = "black", size = 11, face = "bold"),
+    axis.title = element_text(color = "black", size = 14, face = "bold"),
     axis.title.x = element_text(margin = margin(t = 15)),
     axis.title.y = element_text(margin = margin(r = 10)),
     plot.margin = margin(5, 10, 5, 10),
+    plot.title = element_text(size = 16, face = "bold"),
     aspect.ratio = 0.6
   ) +
   labs(
@@ -2014,29 +2112,29 @@ p_investigations <- ggplot() +
   ) +
   # Legend box
   annotate("rect", xmin = legend_start_date, 
-           xmax = legend_start_date + years(6), 
+           xmax = legend_start_date + years(7), 
            ymin = max_inv * 0.94, ymax = max_inv, 
            fill = "white", color = "black", alpha = 0.9, linewidth = 0.3) +
   # Legend items
   annotate("point", 
            x = legend_start_date + months(6), 
            y = max_inv * 0.97,
-           color = "#CC79A7", size = 3) +
+           color = "#CC79A7", size = 4) +
   annotate("text", 
            x = legend_start_date + years(1), 
            y = max_inv * 0.97,
            label = "Investigations Aided",
-           hjust = 0, size = 3.2) +
+           hjust = 0, size = 4.5) +
   # Literature reference symbol
   annotate("point",
            x = legend_start_date + months(6),
            y = max_inv * 0.91,
-           shape = 4, size = 3, stroke = 1.2, color = "black") +
+           shape = 4, size = 4, stroke = 1.5, color = "black") +
   annotate("text",
            x = legend_start_date + years(1),
            y = max_inv * 0.91,
            label = "Literature Citation",
-           hjust = 0, size = 3.2)
+           hjust = 0, size = 4.5)
 
 print(p_investigations)
 ```
@@ -2288,6 +2386,7 @@ summary_table <- ndis_clean %>%
     .groups = 'drop'
   ) %>%
   mutate(year_month = format(year_month, "%Y-%m")) %>%
+  filter(!if_all(c(offender_profiles, arrestee, forensic_profiles), ~ . == 0)) %>%
   arrange(jurisdiction, year_month)
 
 # Count the number of numeric columns (excluding the first 2 grouping columns)
@@ -2342,6 +2441,6 @@ frozen_dir <- here("data", "v1.0")
 dir.create(frozen_dir, recursive = TRUE, showWarnings = FALSE)
 
 frozen_path <- here(frozen_dir, "NDIS_time_series.csv")
-write_csv(ndis_clean, frozen_path)
+write_csv(summary_table, frozen_path)
 cat(paste("✓ Created frozen version 1.0 at:", frozen_path, "\n"))
 ```
