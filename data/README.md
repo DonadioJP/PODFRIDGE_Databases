@@ -7,9 +7,9 @@ This folder contains four primary datasets documenting U.S. forensic DNA databas
 | Dataset | Rows | Time Coverage | Spatial Coverage | Source |
 |---------|------|---------------|------------------|--------|
 | `NDIS_time_series.csv` | 9,442 | 2001-2025 | 54 jurisdictions | FBI CODIS-NDIS Statistics (Wayback Machine Internet Archive) |
-| `SDIS_cross_section.csv` | 50 | 2025 snapshot | 50 states | ? |
-| `FOIA_demographics.csv` | 202 | 2012-2018 | 7 states | Murphy & Tong (2020) |
-| `Annual_DNA_Collection.csv` | 50 | Varies by state | 50 states | Murphy & Tong (2020) Appendix |
+| `SDIS_cross_section.csv` | 50 | ? | 50 states | ? |
+| `FOIA_demographics.csv` | 202 | ? | 7 states | Murphy & Tong (2020) |
+| `Annual_DNA_Collection.csv` | 50 | ? | 50 states | Murphy & Tong (2020) Appendix |
 
 ---
 
@@ -92,7 +92,7 @@ This folder contains four primary datasets documenting U.S. forensic DNA databas
 **Description:** Demographic composition (race/gender) of state DNA databases from FOIA responses documented in Murphy & Tong (2020).
 
 **Source:** Murphy & Tong (2020) - FOIA responses from state agencies  
-**Temporal Coverage:** 2018
+**Temporal Coverage:** ?
 **Spatial Coverage:** 7 states (California, Florida, Louisiana, Maryland, North Carolina, South Carolina, Wisconsin)  
 
 ### Column Definitions
