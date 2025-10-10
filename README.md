@@ -42,7 +42,7 @@ Compiles current state-level DNA database statistics and policy information acro
 Standardizes demographic composition data from state DNA databases obtained through public records requests documented in Murphy & Tong (2020).
 
 - **Data Source:** FOIA responses from 7 states (Murphy & Tong, 2020, Appendix A)
-- **Coverage:** 2012-2018 (varies by state)
+- **Coverage:** 2018 (dates varies by state)
 - **Content:** Racial and gender composition by profile type (offender/arrestee/forensic)
 - **Methods:** OCR processing, data standardization, quality validation
 
